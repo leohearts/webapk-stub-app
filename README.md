@@ -28,6 +28,10 @@ Instead of rendering the web content itself, it captures the launch intent, extr
 - Gradle 8.5+
 - Kotlin 1.9.20+
 
+## Known Issues
+- **Home Screen Re-launch Refresh**: If a WebAPK is already active (minimized to the background) and you tap the WebAPK icon on your home screen again, the target browser may receive a fresh intent, causing the page to reload. Switching to the WebAPK via the "Recent Apps" menu functions as intended without reloading.
+- **Browser Compatibility**: The target browser must be capable of smoothly managing multiple instances / standalone modes from `ACTION_VIEW` and WebAPK-styled intents.
+
 ## Source Code
 The "source code" for this project can be found in [sourcecode.md](sourcecode.md).
 

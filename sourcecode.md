@@ -54,3 +54,8 @@
 
 ---
 *End of Archive*
+
+### Recents Recovery Fix Updates
+After extensive iterations trying various Android Task Management techniques (`singleTop`, `documentLaunchMode`, `startActivityForResult`, transparent floating themes), we found the optimal balance that allows PWAs to persist correctly in Recents without getting "stuck". We reverted to the known-good combination of `launchMode="singleTask"` and a `Theme.Transparent` that explicitly sets `windowIsFloating=true` to prevent the bridge from blocking touch inputs to the underlying browser.
+
+*Model generating this update: Gemini Pro (Advanced Agentic Coding)* [User settings: PLACEHOLDER_M26]
