@@ -52,7 +52,7 @@ class RedirectActivity : Activity() {
 
             if (targetPackage == null) {
                 val selectIntent = Intent(this, SettingsActivity::class.java)
-                startActivity(selectIntent)
+                startActivityForResult(selectIntent, 101)
                 return
             }
 
@@ -66,27 +66,34 @@ class RedirectActivity : Activity() {
             }
 
             try {
-                startActivity(targetIntent)
+                startActivityForResult(targetIntent, 100)
                 hasRedirected = true
                 // NO finish() — keep our activity in the back stack
-                // so the task stays alive in Recents
+                // so the task stays alive in Recents. It will finish in onActivityResult.
             } catch (e: Exception) {
                 Log.e("Redirector", "Failed to start target activity", e)
                 // Browser might require NEW_TASK (singleTask browsers), try with it
                 targetIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 try {
-                    startActivity(targetIntent)
+                    startActivityForResult(targetIntent, 100)
                     hasRedirected = true
                 } catch (e2: Exception) {
                     Log.e("Redirector", "Fallback also failed", e2)
                     val selectIntent = Intent(this, SettingsActivity::class.java)
-                    startActivity(selectIntent)
+                    startActivityForResult(selectIntent, 101)
                 }
             }
         } else if (action == Intent.ACTION_MAIN) {
             val selectIntent = Intent(this, SettingsActivity::class.java)
-            startActivity(selectIntent)
+            startActivityForResult(selectIntent, 101)
+        } else {
+            finish()
         }
-        // NO finish() anywhere
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        Log.d("Redirector", "Child activity closed (req: $requestCode). Exiting transparent bridge.")
+        finish()
     }
 }
