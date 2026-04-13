@@ -21,7 +21,9 @@
         
         <activity
             android:name=".RedirectActivity"
-            android:exported="true">
+            android:exported="true"
+            android:theme="@style/Theme.Transparent"
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -49,7 +51,7 @@
             android:name="com.google.android.apps.chrome.webapps.WebappActivity"
             android:targetActivity=".RedirectActivity"
             android:exported="true" />
-            
+
         <activity-alias
             android:name="org.chromium.chrome.browser.webapps.WebappLauncherActivity"
             android:targetActivity=".RedirectActivity"

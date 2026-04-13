@@ -8,10 +8,32 @@ import android.os.Bundle
 import android.util.Log
 
 class RedirectActivity : Activity() {
+
+    private var hasRedirected = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        hasRedirected = false
+        handleIntent(intent, isReEntry = false)
+    }
 
-        val incomingIntent = intent
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        
+        // If we already redirected and the browser is on top of us,
+        // this is a re-entry from the launcher icon or recents.
+        // Just do nothing — the browser activity is still on top of our back stack.
+        if (hasRedirected) {
+            Log.d("Redirector", "Re-entry detected, skipping redirect (browser is already on top)")
+            return
+        }
+        
+        handleIntent(intent, isReEntry = true)
+    }
+
+    private fun handleIntent(incomingIntent: Intent, isReEntry: Boolean) {
+        val action = incomingIntent.action
         var data = incomingIntent.data
 
         // WebAPK specific extras might contain the URL
@@ -25,25 +47,19 @@ class RedirectActivity : Activity() {
         if (data != null) {
             Log.d("Redirector", "Redirecting URL: $data")
             
-            // Get target package from preferences
             val prefs = getSharedPreferences("RedirectorPrefs", Context.MODE_PRIVATE)
             val targetPackage = prefs.getString("target_package", null)
 
             if (targetPackage == null) {
-                // If not set, go to selection screen
                 val selectIntent = Intent(this, SettingsActivity::class.java)
-                selectIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 startActivity(selectIntent)
-                finish()
                 return
             }
 
-            // Create a new intent to the target browser
             val targetIntent = Intent(Intent.ACTION_VIEW, data)
             targetIntent.setPackage(targetPackage)
-            targetIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            // NO FLAG_ACTIVITY_NEW_TASK — launch browser within our task
             
-            // Copy all extras from the original intent
             val extras = incomingIntent.extras
             if (extras != null) {
                 targetIntent.putExtras(extras)
@@ -51,18 +67,26 @@ class RedirectActivity : Activity() {
 
             try {
                 startActivity(targetIntent)
+                hasRedirected = true
+                // NO finish() — keep our activity in the back stack
+                // so the task stays alive in Recents
             } catch (e: Exception) {
                 Log.e("Redirector", "Failed to start target activity", e)
-                val selectIntent = Intent(this, SettingsActivity::class.java)
-                startActivity(selectIntent)
+                // Browser might require NEW_TASK (singleTask browsers), try with it
+                targetIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                try {
+                    startActivity(targetIntent)
+                    hasRedirected = true
+                } catch (e2: Exception) {
+                    Log.e("Redirector", "Fallback also failed", e2)
+                    val selectIntent = Intent(this, SettingsActivity::class.java)
+                    startActivity(selectIntent)
+                }
             }
-        } else {
-            Log.w("Redirector", "No data or webapp_url found in intent")
-            // If opened directly without data, show selection screen
+        } else if (action == Intent.ACTION_MAIN) {
             val selectIntent = Intent(this, SettingsActivity::class.java)
             startActivity(selectIntent)
         }
-        
-        finish()
+        // NO finish() anywhere
     }
 }
