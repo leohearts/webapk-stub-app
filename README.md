@@ -18,7 +18,7 @@ Instead of rendering the web content itself, it captures the launch intent, extr
 - **Privacy Focused**: No tracking, no internet permission (for the stub itself), just a simple redirection bridge.
 
 ## Usage
-1. **Uninstall/Disable Chrome**: Since this app uses the same package name, you must uninstall or disable the original Google Chrome.
+1. **Uninstall Chrome**: Since this app uses the same package name, you must uninstall the original Google Chrome. Disabling it is not sufficient for the package name conflict.
 2. **Install WebAPK Stub**: Build and install this APK.
 3. **Configure**: Open "Redirector Settings" from your launcher and select your preferred target browser (e.g., Cromite, Firefox, Edge).
 4. **Launch PWAs**: Tap any installed WebAPK/PWA icon. It will now open seamlessly in your selected browser.
