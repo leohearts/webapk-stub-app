@@ -36,6 +36,18 @@ class RedirectActivity : Activity() {
         val action = incomingIntent.action
         var data = incomingIntent.data
 
+        if (BuildConfig.DEBUG) {
+            Log.d("Redirector", "--- INCOMING INTENT ---")
+            Log.d("Redirector", "Action: $action")
+            Log.d("Redirector", "Data: $data")
+            incomingIntent.extras?.let { bundle ->
+                for (key in bundle.keySet()) {
+                    Log.d("Redirector", "Extra[$key]: ${bundle.get(key)}")
+                }
+            }
+            Log.d("Redirector", "-----------------------")
+        }
+
         // WebAPK specific extras might contain the URL
         if (data == null) {
             val webappUrl = incomingIntent.getStringExtra("org.chromium.chrome.browser.webapp_url")
@@ -56,9 +68,18 @@ class RedirectActivity : Activity() {
                 return
             }
 
+            // CRITICAL: We intentionally hardcode Intent.ACTION_VIEW here instead of passing incomingIntent.action.
+            // Why? Because Chrome WebAPKs often launch with a Chrome-specific action:
+            // "com.google.android.apps.chrome.webapps.WebappManager.ACTION_START_WEBAPP"
+            // If we forward that exact action string to a non-Chromium browser (like Firefox), it won't have an
+            // intent filter for it and will crash with an ActivityNotFoundException.
+            // By normalizing to ACTION_VIEW, we guarantee ANY browser can safely accept the intent.
+            // Smart Chromium browsers like Edge will still spot the WebAPK metadata bundled inside the extras
+            // and seamlessly promote the session to a PWA!
             val targetIntent = Intent(Intent.ACTION_VIEW, data)
             targetIntent.setPackage(targetPackage)
             // NO FLAG_ACTIVITY_NEW_TASK — launch browser within our task
+
             
             val extras = incomingIntent.extras
             if (extras != null) {
